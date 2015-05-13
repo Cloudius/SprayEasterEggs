@@ -1,4 +1,5 @@
-package reactive.websocket
+package reactive
+package websocket
 
 import akka.actor.{Actor, actorRef2Scala}
 import akka.io.IO
@@ -12,7 +13,7 @@ abstract class TestingWebSocketClient extends Actor with WebSocketClientWorker w
   override def receive = connect orElse handshaking orElse closeLogic
 
   private def connect(): Receive = {
-    case WebSocket.Connect(host, port, resource, ssl) =>
+    case reactive.websocket.Connect(host, port, resource, ssl) =>
       val headers = List(
         HttpHeaders.Host(host, port),
         HttpHeaders.Connection("Upgrade"),

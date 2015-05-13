@@ -1,4 +1,5 @@
-package reactive.api
+package reactive
+package api
 
 import spray.httpx.SprayJsonSupport
 import spray.json._

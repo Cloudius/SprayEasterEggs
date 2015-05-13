@@ -1,4 +1,5 @@
-package reactive.find
+package reactive
+package find
 
 import akka.actor.{Actor, ActorLogging}
 import reactive.websocket.WebSocket
@@ -17,16 +18,16 @@ class FindActor extends Actor with ActorLogging {
   val markers = mutable.Map[Marker, Option[Move]]()
 
   override def receive = {
-    case WebSocket.Open(ws) if ws != null  =>
+    case reactive.websocket.Open(ws) if ws != null  =>
       clients += ws
       for (markerEntry <- markers if None != markerEntry._2)
         ws.send(message(markerEntry._2.get))
       log.debug("registered monitor for url {}", ws.path())
-    case WebSocket.Close(ws, code, reason) =>
+    case reactive.websocket.Close(ws, code, reason) =>
       self ! Unregister(ws)
-    case WebSocket.Error(ws, ex)           =>
+    case reactive.websocket.Error(ws, ex)           =>
       self ! Unregister(ws)
-    case WebSocket.Message(ws, msg)        =>
+    case reactive.websocket.Message(ws, msg)        =>
       if (null != ws)
         log.debug("url {} received msg '{}'", ws.path(), msg)
     case Clear                             =>

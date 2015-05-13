@@ -1,4 +1,5 @@
-package reactive.websocket
+package reactive
+package websocket
 
 import akka.actor.{ActorSystem, Props}
 import akka.io.IO
@@ -32,22 +33,22 @@ class WebSocketTest extends FunSuite with MainActors with ReactiveApi {
     var wsmsg = ""
     val wsf = system.actorOf(Props(new TestingWebSocketClient {
       override def businessLogic = {
-        case WebSocket.Release => close()
+        case reactive.websocket.Release => close()
         case TextFrame(msg)    => wsmsg = msg.utf8String
         case whatever          => // ignore
       }
     }))
-    wsf ! WebSocket.Connect(Configuration.host, Configuration.portWs, "/find/ws")
+    wsf ! reactive.websocket.Connect(Configuration.host, Configuration.portWs, "/find/ws")
     val wsh = system.actorOf(Props(new TestingWebSocketClient {
       override def businessLogic = {
-        case WebSocket.Send(message) =>
+        case reactive.websocket.Send(message) =>
           log.info("Client sending message {}", message)
           send(message)
-        case WebSocket.Release       => close()
+        case reactive.websocket.Release       => close()
         case whatever                => // ignore
       }
     }))
-    wsh ! WebSocket.Connect(Configuration.host, Configuration.portWs, "/hide/ws")
+    wsh ! reactive.websocket.Connect(Configuration.host, Configuration.portWs, "/hide/ws")
     blocking(Thread.sleep((2 second).toMillis)) // wait for all servers to be cleanly started
 
     def harness(stimulus: (String) => Unit, longi: String, lat: String, responce: => String) = {
@@ -62,16 +63,16 @@ class WebSocketTest extends FunSuite with MainActors with ReactiveApi {
       }
     }
 
-    assert(harness({ s => wsh ! WebSocket.Send(s) }, "2.1523721", "41.4140567", wsmsg))
+    assert(harness({ s => wsh ! reactive.websocket.Send(s) }, "2.1523721", "41.4140567", wsmsg))
 
-    assert(harness({ s => wsh ! WebSocket.Send(s) }, "-38.4798", "-3.8093", wsmsg))
+    assert(harness({ s => wsh ! reactive.websocket.Send(s) }, "-38.4798", "-3.8093", wsmsg))
 
-    wsh ! WebSocket.Release
+    wsh ! reactive.websocket.Release
     blocking(Thread.sleep((1 second).toMillis))
     val clear = """\{"clear":\{"id":"[-0-9a-f]{36}","idx":"\d"\}\}""".r
     assert(clear.findFirstIn(wsmsg).isDefined)
 
-    wsf ! WebSocket.Release
+    wsf ! reactive.websocket.Release
     blocking(Thread.sleep((1 second).toMillis))
     IO(UHttp) ! Http.Unbind
 

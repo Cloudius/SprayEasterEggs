@@ -1,4 +1,5 @@
-package reactive.api
+package reactive
+package api
 
 import akka.actor.{ActorLogging, ActorRef, Props}
 import spray.can.Http

@@ -1,4 +1,5 @@
-package reactive.hide
+package reactive
+package hide
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import reactive.websocket.WebSocket
@@ -6,9 +7,7 @@ import reactive.websocket.WebSocket
 import scala.collection.mutable
 
 sealed trait HideMessage
-
 case object Clear extends HideMessage
-
 case class Unregister(ws: WebSocket) extends HideMessage
 
 class HideActor extends Actor with ActorLogging {
@@ -17,17 +16,17 @@ class HideActor extends Actor with ActorLogging {
   val markers = mutable.Map[WebSocket, ActorRef]()
 
   override def receive = {
-    case WebSocket.Open(ws)                =>
+    case reactive.websocket.Open(ws)                =>
       val idx = (markers.size % 10).toString
       val marker = context.actorOf(Props(classOf[MarkerActor]))
       markers += ((ws, marker))
       log.debug("registered marker {}", idx)
       marker ! reactive.hide.Start(ws, idx)
-    case WebSocket.Close(ws, code, reason) =>
+    case reactive.websocket.Close(ws, code, reason) =>
       self ! Unregister(ws)
-    case WebSocket.Error(ws, ex)           =>
+    case reactive.websocket.Error(ws, ex)           =>
       self ! Unregister(ws)
-    case WebSocket.Message(ws, msg)        =>
+    case reactive.websocket.Message(ws, msg)        =>
       val coords = msg.split(" ")
       val lng = coords(0)
       val lat = coords(1)
@@ -46,10 +45,10 @@ class HideActor extends Actor with ActorLogging {
         marker ! reactive.hide.Stop
       }
     case move@reactive.hide.Move(lng, lat)   =>
-      log.debug("move bunny to ({},{})", lng, lat)
+      log.debug("Move bunny to ({},{})", lng, lat)
       bunny ! move
     case reactive.hide.Stop                  =>
-      log.debug("marker {} stopped", sender())
+      log.debug("Marker {} stopped", sender())
     case whatever                          =>
       log.warning("Hiding '{}'", whatever)
   }

@@ -1,4 +1,5 @@
-package reactive.api
+package reactive
+package api
 
 import akka.actor.{ActorSystem, Props}
 import akka.event.Logging.InfoLevel

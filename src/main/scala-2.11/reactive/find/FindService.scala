@@ -1,28 +1,18 @@
-package reactive.hide
+package reactive
+package find
 
 import akka.actor.{ActorRef, ActorSystem}
 import reactive.Configuration
-import reactive.api.ApplicationJsonFormats
 import reactive.websocket.WebSocket
 import spray.http.StatusCodes
 import spray.routing.Directives
 
-class HideService(val hide: ActorRef)(implicit system: ActorSystem) extends Directives with ApplicationJsonFormats {
-  private implicit val moveFormat = jsonFormat2(Move)
+class FindService(find: ActorRef)(implicit system: ActorSystem) extends Directives {
   lazy val route =
-    pathPrefix("hide") {
-      val dir = "hide/"
+    pathPrefix("find") {
+      val dir = "find/"
       pathEndOrSingleSlash {
-        get {
-          getFromResource(dir + "index.html")
-        } ~
-          post {
-            handleWith {
-              move: Move =>
-                hide ! move
-                "hidden"
-            }
-          }
+        getFromResource(dir + "index.html")
       } ~
         path("ws") {
           requestUri { uri =>
@@ -34,10 +24,10 @@ class HideService(val hide: ActorRef)(implicit system: ActorSystem) extends Dire
         getFromResourceDirectory(dir)
     }
   lazy val wsroute =
-    pathPrefix("hide") {
+    pathPrefix("find") {
       path("ws") {
         implicit ctx =>
-          ctx.responder ! WebSocket.Register(ctx.request, hide, true)
+          ctx.responder ! reactive.websocket.Register(ctx.request, find, true)
       }
     }
 }

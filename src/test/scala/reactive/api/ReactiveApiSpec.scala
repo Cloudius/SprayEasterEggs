@@ -1,4 +1,5 @@
-package reactive.api
+package reactive
+package api
 
 import org.specs2.mutable.Specification
 import spray.http.{MediaTypes, StatusCodes}

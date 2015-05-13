@@ -1,4 +1,5 @@
-package reactive.websocket
+package reactive
+package websocket
 
 import akka.actor.{ActorRef, Cancellable}
 import reactive.api.RouteActor
@@ -25,11 +26,11 @@ class WebSocketServer(val serverConnection: ActorRef, val route: Route) extends 
       log.debug("HTTP request for uri {}", request.uri.path)
       route(ctx.withResponder(self))
       handshaking(request)
-    case WebSocket.Register(request, actor, ping) =>
-      if (ping) pinger = Some(context.system.scheduler.scheduleOnce(110 seconds, self, WebSocket.Ping))
+    case reactive.websocket.Register(request, actor, ping) =>
+      if (ping) pinger = Some(context.system.scheduler.scheduleOnce(110 seconds, self, reactive.websocket.Ping))
       handler = actor
       uripath = request.uri.path.toString()
-      handler ! WebSocket.Open(this)
+      handler ! reactive.websocket.Open(this)
     case Rejected(rejections)                     =>
       log.info("Rejecting with {}", rejections)
       context stop self
@@ -39,27 +40,27 @@ class WebSocketServer(val serverConnection: ActorRef, val route: Route) extends 
   override def businessLogic = {
     case TextFrame(message)  =>
       ping()
-      handler ! WebSocket.Message(this, message.utf8String)
+      handler ! reactive.websocket.Message(this, message.utf8String)
     case UpgradedToWebSocket =>
     // nothing to do
-    case WebSocket.Ping             =>
+    case reactive.websocket.Ping             =>
       send(PingFrame())
     case PongFrame(payload)         =>
       ping()
     case Http.Aborted               =>
-      handler ! WebSocket.Error(this, "aborted")
+      handler ! reactive.websocket.Error(this, "aborted")
     case Http.ErrorClosed(cause)    =>
-      handler ! WebSocket.Error(this, cause)
+      handler ! reactive.websocket.Error(this, cause)
     case CloseFrame(status, reason) =>
-      handler ! WebSocket.Close(this, status.code, reason)
+      handler ! reactive.websocket.Close(this, status.code, reason)
     case Http.Closed                =>
-      handler ! WebSocket.Close(this, StatusCode.NormalClose.code, "")
+      handler ! reactive.websocket.Close(this, StatusCode.NormalClose.code, "")
     case Http.ConfirmedClosed       =>
-      handler ! WebSocket.Close(this, StatusCode.GoingAway.code, "")
+      handler ! reactive.websocket.Close(this, StatusCode.GoingAway.code, "")
     case Http.PeerClosed            =>
-      handler ! WebSocket.Close(this, StatusCode.GoingAway.code, "")
-    case WebSocket.Release          =>
-      handler ! WebSocket.Close(this, StatusCode.NormalClose.code, "")
+      handler ! reactive.websocket.Close(this, StatusCode.GoingAway.code, "")
+    case reactive.websocket.Release          =>
+      handler ! reactive.websocket.Close(this, StatusCode.NormalClose.code, "")
     case whatever                   =>
       log.debug("WebSocket received '{}'", whatever)
   }
@@ -74,7 +75,7 @@ class WebSocketServer(val serverConnection: ActorRef, val route: Route) extends 
     case None        => // nothing to do
     case Some(timer) =>
       if (!timer.isCancelled) timer.cancel()
-      pinger = Some(context.system.scheduler.scheduleOnce(110 seconds, self, WebSocket.Ping))
+      pinger = Some(context.system.scheduler.scheduleOnce(110 seconds, self, reactive.websocket.Ping))
   }
 
   private var uripath = "/"

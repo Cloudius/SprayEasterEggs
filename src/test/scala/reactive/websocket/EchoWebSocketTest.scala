@@ -1,4 +1,5 @@
-package reactive.websocket
+package reactive
+package websocket
 
 import akka.actor.{ActorSystem, Props}
 import akka.io.IO
@@ -32,19 +33,19 @@ class EchoWebSocketTest extends FunSuite with MainActors with ReactiveApi {
     var wsmsg = ""
     val wse = system.actorOf(Props(new TestingWebSocketClient {
       override def businessLogic = {
-        case WebSocket.Release       => close()
+        case reactive.websocket.Release       => close()
         case TextFrame(msg)          => wsmsg = msg.utf8String
-        case WebSocket.Send(message) => send(message)
+        case reactive.websocket.Send(message) => send(message)
         case whatever                => // ignore
       }
     }))
-    wse ! WebSocket.Connect("echo.websocket.org", 443, "/echo", withSsl = true)
+    wse ! reactive.websocket.Connect("echo.websocket.org", 443, "/echo", withSsl = true)
     blocking(Thread.sleep((2 second).toMillis)) // wait for all servers to be cleanly started
     val rock = "Rock it with HTML5 WebSocket"
-    wse ! WebSocket.Send(rock)
+    wse ! reactive.websocket.Send(rock)
     blocking(Thread.sleep((2 second).toMillis))
     assert(rock == wsmsg)
-    wse ! WebSocket.Release
+    wse ! reactive.websocket.Release
     blocking(Thread.sleep((1 second).toMillis))
     IO(UHttp) ! Http.Unbind
     system.shutdown()
