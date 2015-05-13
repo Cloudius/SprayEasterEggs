@@ -22,12 +22,12 @@ import scala.language.postfixOps
 class EchoWebSocketTest extends FunSuite with MainActors with ReactiveApi {
   implicit lazy val system = ActorSystem("EchoWebSocketTest")
   sys.addShutdownHook(system.shutdown())
-  test("websocket echo") {
+  test("WebSocket echo") {
     val wss = system.actorOf(Props(new RootService[WebSocketServer](complete(StatusCodes.NotFound))), "ewss")
     IO(UHttp) ! Http.Bind(wss, Configuration.host, Configuration.portWs)
     blocking(Thread.sleep((2 second).toMillis)) // wait for all servers to be cleanly started
-    find ! FindActor.Clear
-    hide ! HideActor.Clear
+    find ! reactive.find.Clear
+    hide ! reactive.hide.Clear
     blocking(Thread.sleep((1 second).toMillis))
     var wsmsg = ""
     val wse = system.actorOf(Props(new TestingWebSocketClient {
@@ -48,6 +48,6 @@ class EchoWebSocketTest extends FunSuite with MainActors with ReactiveApi {
     blocking(Thread.sleep((1 second).toMillis))
     IO(UHttp) ! Http.Unbind
     system.shutdown()
-    blocking(Thread.sleep((1 second).toMillis))
+    system.awaitTermination()
   }
 }

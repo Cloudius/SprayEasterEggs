@@ -38,7 +38,7 @@ $(document).ready(function() {
 	var onalert = function(event) {
         $(".alert").removeClass("hide")
         $("#map").addClass("hide")
-        log("websocket connection closed or lost")
+        log("WebSocket connection closed or lost")
     }
 	mapSocket.onerror = onalert
 	mapSocket.onclose = onalert

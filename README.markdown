@@ -7,7 +7,7 @@ Follow these steps to get started:
 
 1. Git-clone this repository.
 
-        $ git clone git://github.com/cuali/SprayEasterEggs.git my-project
+        $ git clone https://github.com/Cloudius/SprayEasterEggs.git my-project
 
 2. Change directory into your clone:
 

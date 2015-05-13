@@ -30,7 +30,7 @@ class ReactiveApiSpec extends Specification with Specs2RouteTest with MainActors
         responseAs[String] must contain(">Hide<")
       }
     }
-    "return the javascripts for GET requests to the js files" in {
+    "return the JavaScripts for GET requests to the js files" in {
       Get("/find/find.js") ~> routes ~> check {
         status === StatusCodes.OK
         responseAs[String] must contain("function")
@@ -90,7 +90,7 @@ class ReactiveApiSpec extends Specification with Specs2RouteTest with MainActors
         mediaType must be(MediaTypes.`image/png`)
       }
     }
-    "redirect the GET requests to websocket paths" in {
+    "redirect the GET requests to WebSocket paths" in {
       Get("/find/ws") ~> routes ~> check {
         status === StatusCodes.PermanentRedirect
       }

@@ -89,11 +89,11 @@ $(document).ready(function() {
         if (msg.clear != null) msgClear(msg.clear, markers)
         if (msg.move != null) msgMove(msg.move, map, markers)
     }
-	// if errors on websocket
+	// if errors on WebSocket
 	var onalert = function(event) {
         $(".alert").removeClass("hide")
         $("#map").addClass("hide")
-        log("websocket connection closed or lost")
+        log("WebSocket connection closed or lost")
     }
 	mapSocket.onerror = onalert
 	mapSocket.onclose = onalert

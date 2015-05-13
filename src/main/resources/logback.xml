@@ -1,7 +1,5 @@
+<!DOCTYPE configuration>
 <configuration>
-    <!--
-      <conversionRule conversionWord="kamonToken" converterClass="kamon.trace.logging.LogbackTraceTokenConverter"/>
-    -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <!-- encoders are assigned the type
              ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->

@@ -12,11 +12,15 @@ import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
 
 class WebSocketServer(val serverConnection: ActorRef, val route: Route) extends RouteActor with WebSocketServerWorker with WebSocket {
+
   import context.dispatcher
+
   override lazy val connection = serverConnection
+
   override def receive = matchRoute(route) orElse handshaking orElse closeLogic
-  private def matchRoute(route : Route) : Receive = {
-    case request : HttpRequest =>
+
+  private def matchRoute(route: Route): Receive = {
+    case request: HttpRequest                     =>
       val ctx = RequestContext(request, self, request.uri.path)
       log.debug("HTTP request for uri {}", request.uri.path)
       route(ctx.withResponder(self))
@@ -24,50 +28,56 @@ class WebSocketServer(val serverConnection: ActorRef, val route: Route) extends 
     case WebSocket.Register(request, actor, ping) =>
       if (ping) pinger = Some(context.system.scheduler.scheduleOnce(110 seconds, self, WebSocket.Ping))
       handler = actor
-      uripath = request.uri.path.toString
+      uripath = request.uri.path.toString()
       handler ! WebSocket.Open(this)
-    case Rejected(rejections) =>
+    case Rejected(rejections)                     =>
       log.info("Rejecting with {}", rejections)
       context stop self
   }
-  // this is the actor's behavior after the WebSocket handshaking resulted in an upgraded request 
+
+  // this is the actor's behavior after the WebSocket handshaking resulted in an upgraded request
   override def businessLogic = {
-    case TextFrame(message) =>
-      ping
+    case TextFrame(message)  =>
+      ping()
       handler ! WebSocket.Message(this, message.utf8String)
     case UpgradedToWebSocket =>
-      // nothing to do
-    case WebSocket.Ping =>
+    // nothing to do
+    case WebSocket.Ping             =>
       send(PingFrame())
-    case PongFrame(payload) =>
-      ping
-    case Http.Aborted =>
+    case PongFrame(payload)         =>
+      ping()
+    case Http.Aborted               =>
       handler ! WebSocket.Error(this, "aborted")
-    case Http.ErrorClosed(cause) =>
+    case Http.ErrorClosed(cause)    =>
       handler ! WebSocket.Error(this, cause)
     case CloseFrame(status, reason) =>
       handler ! WebSocket.Close(this, status.code, reason)
-    case Http.Closed =>
+    case Http.Closed                =>
       handler ! WebSocket.Close(this, StatusCode.NormalClose.code, "")
-    case Http.ConfirmedClosed =>
+    case Http.ConfirmedClosed       =>
       handler ! WebSocket.Close(this, StatusCode.GoingAway.code, "")
-    case Http.PeerClosed =>
+    case Http.PeerClosed            =>
       handler ! WebSocket.Close(this, StatusCode.GoingAway.code, "")
-    case WebSocket.Release =>
+    case WebSocket.Release          =>
       handler ! WebSocket.Close(this, StatusCode.NormalClose.code, "")
-    case whatever =>
+    case whatever                   =>
       log.debug("WebSocket received '{}'", whatever)
   }
-  def send(message : String) = send(TextFrame(message))
+
+  def send(message: String) = send(TextFrame(message))
+
   def close() = send(CloseFrame(StatusCode.NormalClose))
+
   def path() = uripath
-  private def ping() : Unit = pinger match {
-    case None => // nothing to do
+
+  private def ping(): Unit = pinger match {
+    case None        => // nothing to do
     case Some(timer) =>
-      if (!timer.isCancelled) timer.cancel
+      if (!timer.isCancelled) timer.cancel()
       pinger = Some(context.system.scheduler.scheduleOnce(110 seconds, self, WebSocket.Ping))
   }
+
   private var uripath = "/"
-  private var pinger : Option[Cancellable] = None
+  private var pinger: Option[Cancellable] = None
   private var handler = self
 }

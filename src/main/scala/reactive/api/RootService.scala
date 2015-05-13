@@ -1,24 +1,26 @@
 package reactive.api
 
-import akka.actor.{ ActorLogging, ActorRef, Props }
-import scala.reflect.ClassTag
+import akka.actor.{ActorLogging, ActorRef, Props}
 import spray.can.Http
-import spray.routing.{ HttpServiceActor, Route }
+import spray.routing.{HttpServiceActor, Route}
 
-class RootService[RA <: RouteActor](val route : Route)(implicit tag : ClassTag[RA]) extends HttpServiceActor with ActorLogging {
+import scala.reflect.ClassTag
+
+class RootService[RA <: RouteActor](val route: Route)(implicit tag: ClassTag[RA]) extends HttpServiceActor with ActorLogging {
   override def receive = {
-    case connected : Http.Connected =>
+    case connected: Http.Connected =>
       // implement the "per-request actor" pattern
-      sender ! Http.Register(context.actorOf(Props(tag.runtimeClass, sender, route)))
-    case whatever => log.debug("RootService got some {}", whatever)
+      sender ! Http.Register(context.actorOf(Props(tag.runtimeClass, sender(), route)))
+    case whatever                  => log.debug("RootService got some {}", whatever)
   }
 }
 
 trait RouteActor extends HttpServiceActor {
-  def connection : ActorRef
-  def route : Route
+  def connection: ActorRef
+
+  def route: Route
 }
 
-private[api] class BasicRouteActor(val connection : ActorRef, val route : Route) extends RouteActor {
+private[api] class BasicRouteActor(val connection: ActorRef, val route: Route) extends RouteActor {
   override def receive = runRoute(route)
 }
