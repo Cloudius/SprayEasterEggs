@@ -13,11 +13,11 @@ trait ApplicationJsonFormats extends DefaultJsonProtocol with SprayJsonSupport {
     def read(value : JsValue) : A = tag.runtimeClass.newInstance().asInstanceOf[A]
   }
 
-  implicit object UuidJsonFormat extends RootJsonFormat[UUID] {
+/*  implicit object UuidJsonFormat extends RootJsonFormat[UUID] {
     def write(id : UUID) = JsString(id.toString)
     def read(value : JsValue) = value match {
       case JsString(id) => UUID.fromString(id)
       case whatever     => deserializationError("Expected JsString, but got " + whatever)
     }
-  }
+  }*/
 }

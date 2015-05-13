@@ -2,11 +2,9 @@ package reactive.api
 
 import reactive.find.FindService
 import reactive.hide.HideService
-import reactive.socket.{ SocketService }
 import reactive.websocket.WebSocketServer
 import akka.actor.{ ActorSystem, Props }
 import akka.event.Logging.InfoLevel
-import scala.reflect.ClassTag
 import spray.http.{ HttpRequest, StatusCodes }
 import spray.routing.{ Directives, RouteConcatenation }
 import spray.routing.directives.LogEntry
@@ -31,7 +29,6 @@ trait ReactiveApi extends RouteConcatenation with StaticRoute with AbstractSyste
     new HideService(hide).wsroute ~
     complete(StatusCodes.NotFound)
   }
-  val socketService = system.actorOf(Props[SocketService], "tcp")
 }
 
 trait StaticRoute extends Directives {

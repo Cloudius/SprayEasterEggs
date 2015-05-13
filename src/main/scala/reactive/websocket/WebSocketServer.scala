@@ -1,14 +1,15 @@
 package reactive.websocket
 
+import akka.actor.{ActorRef, Cancellable}
 import reactive.api.RouteActor
-import akka.actor.{ ActorRef, ActorSystem, Cancellable }
-import scala.concurrent.duration.DurationInt
 import spray.can.Http
-import spray.can.server.UHttp.Upgraded
-import spray.can.websocket.{ UpgradedToWebSocket, WebSocketServerWorker }
-import spray.can.websocket.frame.{ CloseFrame, PingFrame, PongFrame, StatusCode, TextFrame }
+import spray.can.websocket.frame.{CloseFrame, PingFrame, PongFrame, StatusCode, TextFrame}
+import spray.can.websocket.{UpgradedToWebSocket, WebSocketServerWorker}
 import spray.http.HttpRequest
-import spray.routing.{ Rejected, RequestContext, Route }
+import spray.routing.{Rejected, RequestContext, Route}
+
+import scala.concurrent.duration.DurationInt
+import scala.language.postfixOps
 
 class WebSocketServer(val serverConnection: ActorRef, val route: Route) extends RouteActor with WebSocketServerWorker with WebSocket {
   import context.dispatcher
@@ -21,7 +22,7 @@ class WebSocketServer(val serverConnection: ActorRef, val route: Route) extends 
       route(ctx.withResponder(self))
       handshaking(request)
     case WebSocket.Register(request, actor, ping) =>
-      if (ping) pinger = Some(context.system.scheduler.scheduleOnce(110.seconds, self, WebSocket.Ping))
+      if (ping) pinger = Some(context.system.scheduler.scheduleOnce(110 seconds, self, WebSocket.Ping))
       handler = actor
       uripath = request.uri.path.toString
       handler ! WebSocket.Open(this)
@@ -64,7 +65,7 @@ class WebSocketServer(val serverConnection: ActorRef, val route: Route) extends 
     case None => // nothing to do
     case Some(timer) =>
       if (!timer.isCancelled) timer.cancel
-      pinger = Some(context.system.scheduler.scheduleOnce(110.seconds, self, WebSocket.Ping))
+      pinger = Some(context.system.scheduler.scheduleOnce(110 seconds, self, WebSocket.Ping))
   }
   private var uripath = "/"
   private var pinger : Option[Cancellable] = None

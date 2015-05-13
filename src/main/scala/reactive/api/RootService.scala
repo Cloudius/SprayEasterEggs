@@ -1,6 +1,6 @@
 package reactive.api
 
-import akka.actor.{ Actor, ActorLogging, ActorRef, Props }
+import akka.actor.{ ActorLogging, ActorRef, Props }
 import scala.reflect.ClassTag
 import spray.can.Http
 import spray.routing.{ HttpServiceActor, Route }

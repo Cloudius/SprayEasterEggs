@@ -1,21 +1,20 @@
 package reactive
 
-import reactive.api.{ MainActors, ReactiveApi, ReactiveSecurityConfig }
-import akka.actor.{ ActorSystem, PoisonPill }
-import akka.io.{ IO, Tcp }
-import java.net.InetSocketAddress
+import reactive.api.{ MainActors, ReactiveApi }
+import akka.actor.ActorSystem
+import akka.io.IO
 import spray.can.Http
 import spray.can.server.UHttp
 
-object ReactiveSystem extends App with MainActors with ReactiveApi with ReactiveSecurityConfig {
+object ReactiveSystem extends App with MainActors with ReactiveApi {
   implicit lazy val system = ActorSystem("reactive-system")
+  sys.addShutdownHook(system.shutdown() )
   IO(UHttp) ! Http.Bind(wsService, Configuration.host, Configuration.portWs)
   // Since the UTttp extension extends from Http extension, it starts an actor whose name will later collide with the Http extension.
-  system.actorSelection("/user/IO-HTTP") ! PoisonPill
-  IO(Tcp) ! Tcp.Bind(socketService, new InetSocketAddress(Configuration.host, Configuration.portTcp))
+  //system.actorSelection("/user/IO-HTTP") ! PoisonPill
+
   // We could use IO(UHttp) here instead of killing the "/user/IO-HTTP" actor
-  IO(Http) ! Http.Bind(rootService, Configuration.host, Configuration.portHttp)
-  sys.addShutdownHook({ IO(UHttp) ! Http.Unbind; IO(Http) ! Http.Unbind; system.shutdown })
+  IO(UHttp) ! Http.Bind(rootService, Configuration.host, Configuration.portHttp)
 }
 
 object Configuration {
@@ -24,8 +23,7 @@ object Configuration {
   private val config = ConfigFactory.load
   config.checkValid(ConfigFactory.defaultReference)
 
-  lazy val host = config.getString("easter-eggs.host")
-  lazy val portHttp = config.getInt("easter-eggs.ports.http")
-  lazy val portTcp = config.getInt("easter-eggs.ports.tcp")
-  lazy val portWs = config.getInt("easter-eggs.ports.ws")
+  def host = config.getString("easter-eggs.host")
+  def portHttp = config.getInt("easter-eggs.ports.http")
+  def portWs = config.getInt("easter-eggs.ports.ws")
 }

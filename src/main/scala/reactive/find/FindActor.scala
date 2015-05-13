@@ -16,13 +16,11 @@ class FindActor extends Actor with ActorLogging {
   val clients = mutable.ListBuffer[WebSocket]()
   val markers = mutable.Map[FindActor.Marker, Option[FindActor.Move]]()
   override def receive = {
-    case WebSocket.Open(ws) =>
-      if (null != ws) {
+    case WebSocket.Open(ws) if (ws != null) =>
         clients += ws
         for (markerEntry <- markers if None != markerEntry._2)
           ws.send(message(markerEntry._2.get))
         log.debug("registered monitor for url {}", ws.path)
-      }
     case WebSocket.Close(ws, code, reason) =>
       self ! FindActor.Unregister(ws)
     case WebSocket.Error(ws, ex) =>
